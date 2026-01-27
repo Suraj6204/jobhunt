@@ -1,8 +1,8 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import getDataUri from "../utils/datauri.js";
-import cloudinary from "../utils/cloudinary.js";
+// import getDataUri from "../utils/datauri.js";
+// import cloudinary from "../utils/cloudinary.js";
 
 export const register = async (req, res) => {
     try {
@@ -14,9 +14,9 @@ export const register = async (req, res) => {
                 success: false
             });
         };
-        const file = req.file;
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        // const file = req.file;
+        // const fileUri = getDataUri(file);
+        // const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
         const user = await User.findOne({ email });
         if (user) {
@@ -33,9 +33,9 @@ export const register = async (req, res) => {
             phoneNumber,
             password: hashedPassword,
             role,
-            profile:{
-                profilePhoto:cloudResponse.secure_url,
-            }
+            // profile:{
+            //     profilePhoto:cloudResponse.secure_url,
+            // }
         });
 
         return res.status(201).json({
@@ -82,7 +82,7 @@ export const login = async (req, res) => {
         const tokenData = {
             userId: user._id
         }
-        const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
+        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         user = {
             _id: user._id,
@@ -110,6 +110,54 @@ export const logout = async (req, res) => {
             success: true
         })
     } catch (error) {
+        console.log(error);
+    }
+}
+
+export const updateProfile = async (req, res) => {
+    try {
+        const {fullname, email, phoneNumber, bio, skills} = req.body;
+        const file = req.file;
+
+        //cloudinary upload for profile photo
+        let skillsArray;
+        if(skills){
+            skillsArray = skills.split(',');
+        }
+        const userId = req.id; //middleware
+        let user = await User.findById(userId);
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found",
+                success: false
+            });
+        }
+
+        if(fullname) user.fullname = fullname;
+        if(email) user.email = email;
+        if(phoneNumber) user.phoneNumber = phoneNumber;
+        if(bio) user.profile.bio = bio;
+        if(skillsArray) user.profile.skills = skillsArray;
+
+        //resume comes later
+
+        await user.save();
+        user = {
+            _id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+            profile: user.profile
+        }
+
+        return res.status(200).json({       
+            message: "Profile updated successfully",
+            user,
+            success: true
+        });
+    }
+    catch (error) {
         console.log(error);
     }
 }
