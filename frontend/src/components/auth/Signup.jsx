@@ -1,75 +1,77 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../shared/Navbar'
+import { Label } from '../ui/label'
+import { Input } from '../ui/input'
 import { RadioGroup } from '../ui/radio-group'
 import { Button } from '../ui/button'
 import { Link, useNavigate } from 'react-router-dom'
-import { Label } from '../ui/label'
-import { Input } from '../ui/input'
 import axios from 'axios'
 import { USER_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
-// import { useDispatch, useSelector } from 'react-redux'
-// import { setLoading, setUser } from '@/redux/authSlice'
-// import { Loader2 } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { setLoading } from '@/redux/authSlice'
+import { Loader2 } from 'lucide-react'
 
 const Signup = () => {
-    const [input, setInput] = useState({
-        fullname: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
-        role: "",
-        file: ""
-    });
-    // const { loading,user } = useSelector(store => store.auth);
-    const navigate = useNavigate();
-    // const dispatch = useDispatch();
+  const [input, setInput] = useState({
+    fullname: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    role: "",
+    file: "",
+  });
+  const { loading, user } = useSelector((store) => store.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    const changeEventHandler = (e) => {
-        setInput({ ...input, [e.target.name]: e.target.value });
+  const changeEventHandler = (e) => {
+    setInput({ ...input, [e.target.name]: e.target.value });
+  };
+
+  const changeFileHandler = (e) => {
+    setInput({ ...input, file: e.target.files?.[0] });
+  };
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("fullname", input.fullname);
+    formData.append("email", input.email);
+    formData.append("phoneNumber", input.phoneNumber);
+    formData.append("password", input.password);
+    formData.append("role", input.role);
+    if (input.file) {
+      formData.append("file", input.file);
     }
-
-    const changeFileHandler = (e) => {
-        setInput({ ...input, file: e.target.files?.[0] });
+    try {
+      const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (res.data.success) {
+        navigate("/login");
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
     }
-
-    const submitHandler = async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append("fullname", input.fullname);
-        formData.append("email", input.email);
-        formData.append("phoneNumber", input.phoneNumber);
-        formData.append("password", input.password);
-        formData.append("role", input.role);
-        if(input.file){
-            formData.append("file", input.file);
-        }
-        try{
-            const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            });
-            if (res.data.success) {
-                navigate("/login");
-                toast.success(res.data.message);
-            }
-        }
-        catch(error){
-            console.log(error);
-        }
+    finally {
+      dispatch(setLoading(false));
     }
+  };
 
-    // useEffect(()=>{
-    //     if(user){
-    //         navigate("/");
-    //     }
-    // },[])
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, []);
 
-    return (
-        <div>
-            <Navbar />
-            {/* <div className='flex items-center justify-center max-w-7xl mx-auto'>
+  return (
+    <div>
+      <Navbar />
+      {/* <div className='flex items-center justify-center max-w-7xl mx-auto'>
                 <form className='w-1/2 border border-gray-200 rounded-md p-4 my-10'>
                     <h1 className='font-bold text-xl mb-5'>Signup</h1>
                     <div className='my-2'>
@@ -127,124 +129,151 @@ const Signup = () => {
                 </form>
             </div> */}
 
-            <main className="flex items-center justify-center w-full px-4">
-                <form onSubmit={submitHandler} className="flex w-full flex-col max-w-96">
-        
-                <svg className="size-10" width="30" height="33" viewBox="0 0 30 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="m8 4.55 6.75 3.884 6.75-3.885M8 27.83v-7.755L1.25 16.19m27 0-6.75 3.885v7.754M1.655 8.658l13.095 7.546 13.095-7.546M14.75 31.25V16.189m13.5 5.976V10.212a2.98 2.98 0 0 0-1.5-2.585L16.25 1.65a3.01 3.01 0 0 0-3 0L2.75 7.627a3 3 0 0 0-1.5 2.585v11.953a2.98 2.98 0 0 0 1.5 2.585l10.5 5.977a3.01 3.01 0 0 0 3 0l10.5-5.977a3 3 0 0 0 1.5-2.585"
-                    stroke="#1d293d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                    
-            
-                <h2 className="text-4xl font-medium text-gray-900">Signup</h2>
-            
-                <p className="mt-4 text-primary-foreground/90">
-                    Please enter your details to create an account.
-                </p>
-            
-                <div className="mt-10">
-                    <label className="font-medium">Full Name</label>
-                    <input
-                        className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
-                        required
-                        type="text"
-                        value={input.fullname}
-                        name="fullname"
-                        onChange={changeEventHandler}
-                        placeholder="Please enter your full name"
-                    />
-                </div>
+      <main className="flex items-center justify-center w-full px-4">
+        <form
+          onSubmit={submitHandler}
+          className="flex w-full flex-col max-w-96"
+        >
+          <svg
+            className="size-10"
+            width="30"
+            height="33"
+            viewBox="0 0 30 33"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m8 4.55 6.75 3.884 6.75-3.885M8 27.83v-7.755L1.25 16.19m27 0-6.75 3.885v7.754M1.655 8.658l13.095 7.546 13.095-7.546M14.75 31.25V16.189m13.5 5.976V10.212a2.98 2.98 0 0 0-1.5-2.585L16.25 1.65a3.01 3.01 0 0 0-3 0L2.75 7.627a3 3 0 0 0-1.5 2.585v11.953a2.98 2.98 0 0 0 1.5 2.585l10.5 5.977a3.01 3.01 0 0 0 3 0l10.5-5.977a3 3 0 0 0 1.5-2.585"
+              stroke="#1d293d"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
 
-                <div className="mt-6">
-                    <label className="font-medium">Email</label>
-                    <input
-                        className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
-                        required
-                        type="email"
-                        value={input.email}
-                        name="email"
-                        onChange={changeEventHandler}
-                        placeholder="Please enter your email"
-                    />
-                </div>
-            
-                <div className="mt-6">
-                    <label className="font-medium">Password</label>
-                    <input
-                        placeholder="Please enter your password"
-                        className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
-                        required
-                        type="password"
-                        value={input.password}
-                        name="password"
-                        onChange={changeEventHandler}
-                    />
-                </div>
+          <h2 className="text-4xl font-medium text-gray-900">Signup</h2>
 
-                <div className="mt-6">
-                    <label className="font-medium">Phone Number</label>
-                    <input
-                        placeholder="Please enter your phone number"
-                        className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
-                        required
-                        type="text"
-                        value={input.phoneNumber}
-                        name="phoneNumber"
-                        onChange={changeEventHandler}
-                    />
-                </div>
-                    
-                <div className="mt-6">
-                    <label className="font-medium">Role</label>
+          <p className="mt-4 text-primary-foreground/90">
+            Please enter your details to create an account.
+          </p>
 
-                    <RadioGroup className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center space-x-2">
-                            <Input
-                                type="radio"
-                                name="role"
-                                value="student"
-                                checked={input.role === 'student'}
-                                onChange={changeEventHandler}
-                                className="cursor-pointer accent-primary"
-                            />
-                            <Label className="font-medium text-md" htmlFor="r1">Student</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Input
-                                type="radio"
-                                name="role"
-                                value="recruiter"
-                                checked={input.role === 'recruiter'}
-                                onChange={changeEventHandler}
-                                className="cursor-pointer accent-primary"
-                            />
-                            <Label className="font-medium text-md" htmlFor="r2">Recruiter</Label>
-                        </div>
-                    </RadioGroup>
-                    <div className='mt-6 flex items-center gap-2'>
-                        <Label>Profile</Label>
-                        <Input
-                            accept="image/*"
-                            type="file"
-                            onChange={changeFileHandler}
-                            className="cursor-pointer"
-                        />
-                    </div>
-                </div>
-                <button
-                    type="submit"
-                    className="mt-8 py-3 w-full cursor-pointer rounded-md bg-primary text-white transition hover:bg-primary-foreground"
-                >
-                    Signup
-                </button>
-                <p className='text-center py-8'>
-                    Already have an account? <Link to="/login" className="text-primary hover:underline">Login</Link>
-                </p>
-                
-                </form>
-            </main>
-        </div>
-    )
-}
+          <div className="mt-10">
+            <label className="font-medium">Full Name</label>
+            <input
+              className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
+              required
+              type="text"
+              value={input.fullname}
+              name="fullname"
+              onChange={changeEventHandler}
+              placeholder="Please enter your full name"
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="font-medium">Email</label>
+            <input
+              className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
+              required
+              type="email"
+              value={input.email}
+              name="email"
+              onChange={changeEventHandler}
+              placeholder="Please enter your email"
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="font-medium">Password</label>
+            <input
+              placeholder="Please enter your password"
+              className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
+              required
+              type="password"
+              value={input.password}
+              name="password"
+              onChange={changeEventHandler}
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="font-medium">Phone Number</label>
+            <input
+              placeholder="Please enter your phone number"
+              className="mt-2 rounded-md ring ring-gray-200 focus:ring-2 focus:ring-primary outline-none px-3 py-3 w-full"
+              required
+              type="text"
+              value={input.phoneNumber}
+              name="phoneNumber"
+              onChange={changeEventHandler}
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="font-medium">Role</label>
+
+            <RadioGroup className="flex items-center gap-4 mt-2">
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="radio"
+                  name="role"
+                  value="student"
+                  checked={input.role === "student"}
+                  onChange={changeEventHandler}
+                  className="cursor-pointer accent-primary"
+                />
+                <Label className="font-medium text-md" htmlFor="r1">
+                  Student
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="radio"
+                  name="role"
+                  value="recruiter"
+                  checked={input.role === "recruiter"}
+                  onChange={changeEventHandler}
+                  className="cursor-pointer accent-primary"
+                />
+                <Label className="font-medium text-md" htmlFor="r2">
+                  Recruiter
+                </Label>
+              </div>
+            </RadioGroup>
+            <div className="mt-6 flex items-center gap-2">
+              <Label>Profile</Label>
+              <Input
+                accept="image/*"
+                type="file"
+                onChange={changeFileHandler}
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            disabled={loading} // Form submit hone se rokta hai
+            className="mt-8 py-3 w-full cursor-pointer rounded-md bg-primary text-white transition hover:bg-primary-foreground"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please wait
+              </>
+            ) : (
+              "Signup"
+            )} 
+          </Button>
+          <p className="text-center py-8">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline">
+              Login
+            </Link>
+          </p>
+        </form>
+      </main>
+    </div>
+  );
+};
 
 export default Signup;
