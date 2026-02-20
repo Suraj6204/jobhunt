@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import Navbar from '../shared/Navbar'
-import { Label } from '../ui/label'
-import { Input } from '../ui/input'
-import { RadioGroup } from '../ui/radio-group'
-import { Button } from '../ui/button'
-import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { USER_API_END_POINT } from '@/utils/constant'
-import { toast } from 'sonner'
-import { useDispatch, useSelector } from 'react-redux'
-import { setLoading } from '@/redux/authSlice'
-import { Loader2 } from 'lucide-react'
+import React, { useEffect, useState } from "react";
+import Navbar from "../shared/Navbar";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { RadioGroup } from "../ui/radio-group";
+import { Button } from "../ui/button";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constant";
+import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading, setTempEmail } from "@/redux/authSlice";
+import { Loader2 } from "lucide-react";
 
 const Signup = () => {
   const [input, setInput] = useState({
@@ -51,13 +51,23 @@ const Signup = () => {
         },
       });
       if (res.data.success) {
-        navigate("/login");
-        toast.success(res.data.message);
+        // 1. Email ko Redux mein save karein verification ke liye
+        dispatch(setTempEmail(input.email));
+
+        // 2. OTP bhejne ke liye backend API call karein
+        await axios.post(`${USER_API_END_POINT}/send-otp`, {
+          email: input.email,
+        });
+
+        toast.success("Account created! OTP sent to your email.");
+
+        // 3. Verify Email page par navigate karein
+        navigate("/verify-email");
       }
     } catch (error) {
       console.log(error);
-    }
-    finally {
+      toast.error(error.response.data.message);
+    } finally {
       dispatch(setLoading(false));
     }
   };
@@ -262,7 +272,7 @@ const Signup = () => {
               </>
             ) : (
               "Signup"
-            )} 
+            )}
           </Button>
           <p className="text-center py-8">
             Already have an account?{" "}
