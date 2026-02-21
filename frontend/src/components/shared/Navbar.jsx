@@ -40,29 +40,24 @@ const Navbar = () => {
   };
 
   const NavLinks = () => (
-    <ul className="flex flex-col lg:flex-row font-medium items-start lg:items-center gap-4 lg:gap-8">
-      {user && user.role === "recruiter" ? (
-        <>
-          <li className="hover:text-primary transition">
-            <Link to="/admin/companies">Companies</Link>
-          </li>
-          <li className="hover:text-primary transition">
-            <Link to="/admin/jobs">Jobs</Link>
-          </li>
-        </>
-      ) : (
-        <>
-          <li className="hover:text-primary transition">
-            <Link to="/">Home</Link>
-          </li>
-          <li className="hover:text-primary transition">
-            <Link to="/jobs">Jobs</Link>
-          </li>
-          <li className="hover:text-primary transition">
-            <Link to="/browse">Browse</Link>
-          </li>
-        </>
-      )}
+    <ul className="flex flex-col lg:flex-row font-medium items-start lg:items-center gap-0 lg:gap-8 w-full">
+      {[
+        { name: "Home", path: "/" },
+        { name: "Jobs", path: "/jobs" },
+        { name: "Browse", path: "/browse" },
+      ].map((link) => (
+        <li
+          key={link.name}
+          className="w-full border-b border-gray-100 lg:border-none"
+        >
+          <Link
+            to={link.path}
+            className="block py-4 lg:py-0 text-gray-700 hover:text-primary transition-colors text-lg lg:text-base"
+          >
+            {link.name}
+          </Link>
+        </li>
+      ))}
     </ul>
   );
 
@@ -118,25 +113,33 @@ const Navbar = () => {
                 <Menu />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <SheetHeader className="border-b pb-4">
-                <SheetTitle className="text-left text-2xl">
-                  Job<span className="text-primary">Hunt</span>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col gap-8 mt-10 px-2">
-                {/* Navigation Links with good padding */}
-                <NavLinks />
 
+            <SheetContent side="right" className="w-75 sm:w-95 p-0">
+
+              <div className="flex flex-col h-[calc(100vh-80px)] justify-between p-6">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Menu
+                  </p>
+                  {/* Navigation Links with lines (from Step 1) */}
+                  <NavLinks />
+                </div>
+
+                {/* Bottom Section for Auth Buttons */}
                 {!user && (
-                  <div className="flex flex-col gap-4 border-t pt-8">
+                  <div className="flex flex-col gap-3 pt-6 border-t mt-auto">
                     <Link to="/login" className="w-full">
-                      <Button variant="outline" className="w-full py-6 text-lg">
+                      <Button
+                        variant="outline"
+                        className="w-full py-6 text-base font-semibold shadow-sm"
+                      >
                         Login
                       </Button>
                     </Link>
                     <Link to="/signup" className="w-full">
-                      <Button className="w-full py-6 text-lg">Signup</Button>
+                      <Button className="w-full py-6 text-base font-semibold shadow-md bg-primary hover:bg-primary-foreground">
+                        Get Started
+                      </Button>
                     </Link>
                   </div>
                 )}
